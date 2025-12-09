@@ -25,4 +25,22 @@ interface FoodDao {
     @Transaction
     @Query("SELECT * FROM foods ORDER BY expiry_date ASC")
     fun getAllFoodsWithCategory(): Flow<List<FoodWithCategory>>
+
+    // 食材名で検索（PHPの SELECT * FROM foods WHERE name LIKE '%検索語%' と同じ）
+    @Transaction
+    @Query("SELECT * FROM foods WHERE name LIKE '%' || :query || '%' ORDER BY expiry_date ASC")
+    fun searchFoods(query: String): Flow<List<FoodWithCategory>>
+
+    // カテゴリで絞り込み（PHPの SELECT * FROM foods WHERE category_id = ? と同じ）
+    @Transaction
+    @Query("SELECT * FROM foods WHERE category_id = :categoryId ORDER BY expiry_date ASC")
+    fun getFoodsByCategory(categoryId: Int): Flow<List<FoodWithCategory>>
+
+    // ID指定で1件取得（PHPの SELECT * FROM foods WHERE food_id = ? LIMIT 1 と同じ）
+    @Query("SELECT * FROM foods WHERE food_id = :foodId")
+    suspend fun getFoodById(foodId: Int): Food?
+
+    // IDで削除（更新ダイアログの削除ボタン用）
+    @Query("DELETE FROM foods WHERE food_id = :foodId")
+    suspend fun deleteFoodById(foodId: Int)
 }
