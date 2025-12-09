@@ -1,6 +1,7 @@
 package com.example.refrigeratordatabase.data.local
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -9,9 +10,6 @@ import com.example.refrigeratordatabase.data.local.dao.CategoryDao
 import com.example.refrigeratordatabase.data.local.dao.FoodDao
 import com.example.refrigeratordatabase.data.local.entity.Category
 import com.example.refrigeratordatabase.data.local.entity.Food
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 /**
  * AppDatabase - Roomデータベースのメインクラス
@@ -19,7 +17,7 @@ import kotlinx.coroutines.launch
  * PHPでいうMySQLの「データベース接続」に相当。
  * Room.databaseBuilder() = new mysqli() のような接続作成。
  */
-@Database(entities = [Food::class, Category::class], version = 1, exportSchema = false)
+@Database(entities = [Food::class, Category::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun foodDao(): FoodDao
@@ -34,14 +32,14 @@ abstract class AppDatabase : RoomDatabase() {
          * PHPでいう「初期データINSERT」のシード処理
          */
         private val INITIAL_CATEGORIES = listOf(
-            Category(categoryId = 1, name = "野菜"),
-            Category(categoryId = 2, name = "果物"),
-            Category(categoryId = 3, name = "肉類"),
-            Category(categoryId = 4, name = "魚介類"),
-            Category(categoryId = 5, name = "乳製品"),
-            Category(categoryId = 6, name = "調味料"),
-            Category(categoryId = 7, name = "飲料"),
-            Category(categoryId = 8, name = "その他")
+            "野菜",
+            "果物",
+            "肉類",
+            "魚介類",
+            "乳製品",
+            "調味料",
+            "飲料",
+            "その他"
         )
 
         fun getDatabase(context: Context): AppDatabase {
@@ -51,6 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "refrigerator_database"
                 )
+                    .fallbackToDestructiveMigration() // バージョンアップ時にDBを再作成
                     .addCallback(DatabaseCallback())
                     .build()
                 INSTANCE = instance
@@ -63,20 +62,22 @@ abstract class AppDatabase : RoomDatabase() {
          *
          * PHPでいう「マイグレーション後のシーダー実行」に相当。
          * onCreate() = DBが初めて作成されたときだけ実行される。
+         *
+         * 注意: この時点ではINSTANCEがnullなので、直接SQLを実行する
          */
         private class DatabaseCallback : Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
-                // コルーチンで非同期実行（PHPでは同期だが、Androidではメインスレッドでの
-                // DB操作はNGなので非同期で行う）
-                CoroutineScope(Dispatchers.IO).launch {
-                    INSTANCE?.let { database ->
-                        val categoryDao = database.categoryDao()
-                        INITIAL_CATEGORIES.forEach { category ->
-                            categoryDao.insertCategory(category)
-                        }
-                    }
+                Log.d("AppDatabase", "=== onCreate called! Inserting initial categories ===")
+                // 直接SQLでカテゴリを挿入（PHPの mysqli_query() と同じ）
+                // INSTANCEがまだnullなので、SupportSQLiteDatabaseを直接使用
+                INITIAL_CATEGORIES.forEachIndexed { index, categoryName ->
+                    Log.d("AppDatabase", "Inserting category: $categoryName")
+                    db.execSQL(
+                        "INSERT INTO categories (category_id, name) VALUES (${index + 1}, '$categoryName')"
+                    )
                 }
+                Log.d("AppDatabase", "=== All categories inserted! ===")
             }
         }
     }
