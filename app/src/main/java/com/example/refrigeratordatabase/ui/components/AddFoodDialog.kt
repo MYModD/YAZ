@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -73,7 +74,8 @@ fun AddFoodDialog(
     onCategorySelect: (Int) -> Unit,
     onExpiryDateSelect: (Long) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    isAdding: Boolean = false  // 追加中フラグ（連打防止用）
 ) {
     // Figmaデザインの色定義
     val primaryDark = Color(0xFF030213)
@@ -236,11 +238,13 @@ fun AddFoodDialog(
                 // ボタン
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedButton(
                         onClick = onDismiss,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = !isAdding  // 追加中はキャンセルも無効化
                     ) {
                         Text(
                             text = "キャンセル",
@@ -254,13 +258,29 @@ fun AddFoodDialog(
                         onClick = onConfirm,
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = primaryDark),
-                        enabled = foodName.isNotBlank() && selectedCategoryId != null && expiryDate != null
+                        // 追加中または入力不足の場合は無効化
+                        enabled = !isAdding && foodName.isNotBlank() && selectedCategoryId != null && expiryDate != null
                     ) {
-                        Text(
-                            text = "追加",
-                            fontSize = 14.sp,
-                            color = Color.White
-                        )
+                        if (isAdding) {
+                            // 追加中はローディング表示
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "追加中...",
+                                fontSize = 14.sp,
+                                color = Color.White
+                            )
+                        } else {
+                            Text(
+                                text = "追加",
+                                fontSize = 14.sp,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
             }

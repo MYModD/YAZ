@@ -1,6 +1,7 @@
 package com.example.refrigeratordatabase.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +65,7 @@ import java.util.Locale
  * PHPでいう「カレンダーページ (calendar.php)」に相当。
  * 月カレンダーを表示し、期限日が近い食材をマーカーで表示する。
  * 日付をタップすると、その日が期限の食材リストを表示する。
+ * Googleカレンダーの予定も統合して表示できる。
  *
  * Figma node: 122-954
  */
@@ -74,7 +77,10 @@ fun CalendarScreen(
     onAddFoodClick: () -> Unit,
     onFoodClick: (FoodWithCategory) -> Unit,
     selectedTabIndex: Int = 1,
-    onTabSelect: (Int) -> Unit = {}
+    onTabSelect: (Int) -> Unit = {},
+    // Google Calendar 連携用パラメータ（初回起動時に自動連携）
+    googleEventDates: Set<Long> = emptySet(),
+    onMonthChange: (year: Int, month: Int) -> Unit = { _, _ -> }
 ) {
     // Figmaデザインの色定義
     val primaryDark = Color(0xFF1A2B2E)
@@ -86,6 +92,13 @@ fun CalendarScreen(
     // カレンダーの状態
     var currentMonth by remember { mutableStateOf(Calendar.getInstance()) }
     var internalSelectedDate by remember { mutableLongStateOf(selectedDate ?: System.currentTimeMillis()) }
+
+    // 月が変更されたらコールバックを呼び出し（Googleカレンダーのイベント取得用）
+    LaunchedEffect(currentMonth) {
+        val year = currentMonth.get(Calendar.YEAR)
+        val month = currentMonth.get(Calendar.MONTH) + 1
+        onMonthChange(year, month)
+    }
 
     // 選択日の食材をフィルタリング
     val foodsOnSelectedDate = run {
@@ -111,6 +124,9 @@ fun CalendarScreen(
                 set(Calendar.MILLISECOND, 0)
             }.timeInMillis
         }.toSet()
+
+    // 食材の期限日とGoogleカレンダーの予定日をマージ
+    val allDatesWithMarker = datesWithExpiry + googleEventDates
 
     Column(
         modifier = Modifier
@@ -142,7 +158,7 @@ fun CalendarScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // タブ
         FoodListTabs(
@@ -186,11 +202,11 @@ fun CalendarScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // カレンダーグリッド
+                // カレンダーグリッド（食材期限日 + Googleカレンダー予定日を表示）
                 CalendarGrid(
                     currentMonth = currentMonth,
                     selectedDate = internalSelectedDate,
-                    datesWithExpiry = datesWithExpiry,
+                    datesWithExpiry = allDatesWithMarker,
                     onDateSelect = { date ->
                         internalSelectedDate = date
                         onDateSelect(date)
@@ -343,7 +359,7 @@ private fun CalendarGrid(
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(7),
-        modifier = Modifier.height(220.dp),
+        modifier = Modifier.height(260.dp),
         userScrollEnabled = false
     ) {
         items(days) { day ->

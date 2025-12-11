@@ -38,7 +38,12 @@ fun AppNavigation(
     onCategorySelect: (Int?) -> Unit,
     onTabSelect: (Int) -> Unit,
     onAddFoodClick: () -> Unit,
-    onEditFoodClick: (FoodWithCategory) -> Unit
+    onEditFoodClick: (FoodWithCategory) -> Unit,
+    // Google Calendar 連携用パラメータ（初回起動時に自動連携）
+    googleEventDates: Set<Long> = emptySet(),
+    onMonthChange: (year: Int, month: Int) -> Unit = { _, _ -> },
+    // 初回起動時のGoogle連携用
+    onStartWithGoogleConnect: () -> Unit = {}
 ) {
     NavHost(
         navController = navController,
@@ -48,6 +53,9 @@ fun AppNavigation(
         composable(Screen.Top.route) {
             TopScreen(
                 onStartClick = {
+                    // 初回起動時にGoogleカレンダー連携を開始
+                    onStartWithGoogleConnect()
+                    // リスト画面へ遷移
                     navController.navigate(Screen.FoodList.route) {
                         // トップ画面をバックスタックから削除（戻るボタンで戻らないように）
                         popUpTo(Screen.Top.route) { inclusive = true }
@@ -68,7 +76,10 @@ fun AppNavigation(
                 onCategorySelect = onCategorySelect,
                 onTabSelect = onTabSelect,
                 onAddFoodClick = onAddFoodClick,
-                onEditFoodClick = onEditFoodClick
+                onEditFoodClick = onEditFoodClick,
+                // Google Calendar 連携用パラメータ（初回起動時に自動連携）
+                googleEventDates = googleEventDates,
+                onMonthChange = onMonthChange
             )
         }
     }

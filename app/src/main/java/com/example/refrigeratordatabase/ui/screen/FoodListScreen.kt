@@ -77,7 +77,10 @@ fun FoodListScreen(
     onCategorySelect: (Int?) -> Unit,
     onTabSelect: (Int) -> Unit,
     onAddFoodClick: () -> Unit,
-    onEditFoodClick: (FoodWithCategory) -> Unit
+    onEditFoodClick: (FoodWithCategory) -> Unit,
+    // Google Calendar 連携用パラメータ（初回起動時に自動連携）
+    googleEventDates: Set<Long> = emptySet(),
+    onMonthChange: (year: Int, month: Int) -> Unit = { _, _ -> }
 ) {
     // Figmaデザインの色定義
     val primaryDark = Color(0xFF1A2B2E)
@@ -237,7 +240,10 @@ fun FoodListScreen(
                 onAddFoodClick = onAddFoodClick,
                 onFoodClick = onEditFoodClick,
                 selectedTabIndex = selectedTabIndex,
-                onTabSelect = onTabSelect
+                onTabSelect = onTabSelect,
+                // Google Calendar 連携用パラメータ（初回起動時に自動連携）
+                googleEventDates = googleEventDates,
+                onMonthChange = onMonthChange
             )
         }
     }
