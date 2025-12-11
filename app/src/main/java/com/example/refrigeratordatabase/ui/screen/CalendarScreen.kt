@@ -125,8 +125,9 @@ fun CalendarScreen(
             }.timeInMillis
         }.toSet()
 
-    // 食材の期限日とGoogleカレンダーの予定日をマージ
-    val allDatesWithMarker = datesWithExpiry + googleEventDates
+    // カレンダーに表示するドットマーカーは食材の期限日のみ
+    // ※ Googleカレンダーの予定は表示しない（ユーザー要望）
+    val allDatesWithMarker = datesWithExpiry
 
     Column(
         modifier = Modifier
