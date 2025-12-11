@@ -1,5 +1,6 @@
 package com.example.refrigeratordatabase.ui.screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,20 +12,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.refrigeratordatabase.R
 import com.example.refrigeratordatabase.ui.theme.RefrigeratorDatabaseTheme
 
 /**
@@ -53,12 +54,12 @@ fun TopScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // 冷蔵庫アイコン（Kitchen は拡張アイコンのため、Home で代用）
-            Icon(
-                imageVector = Icons.Default.Home,
+            // 冷蔵庫アイコン（カスタムPNG画像）
+            Image(
+                painter = painterResource(id = R.drawable.refrigerator),
                 contentDescription = "冷蔵庫アイコン",
-                modifier = Modifier.size(80.dp),
-                tint = primaryDark
+                modifier = Modifier.size(120.dp),
+                colorFilter = ColorFilter.tint(primaryDark)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
